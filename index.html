@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Pasadías - Club Día de Sol</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.13/css/intlTelInput.css">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f2f2f2;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+            box-sizing: border-box;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+
+        img {
+            display: block;
+            margin: auto;
+            max-width: 35%;
+            height: auto;
+            margin-top: 20px;
+        }
+        #current-date {
+            text-align: center;
+            color: #777;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-top: 15px;
+            color: #555;
+            font-weight: 500;
+        }
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        input[type="password"],
+        input[type="number"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 14px;
+            font-family: 'Roboto', sans-serif;
+        }
+        input[type="file"] {
+            margin-top: 10px;
+        }
+        .total {
+            font-size: 18px;
+            color: #333;
+            margin-top: 20px;
+            text-align: center;
+            font-weight: 500;
+        }
+        .total span {
+            font-weight: bold;
+            color: #ff6900;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background-color: #ff6900;
+            border: none;
+            color: white;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #ff6900;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 20px;
+            }
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.13/js/intlTelInput.min.js"></script>
+    <script>
+        // Función para calcular el total a pagar
+        function calculateTotal() {
+            const plan = document.getElementById('plan').value;
+            let pricePerAdult, pricePerChild;
+
+            switch (plan) {
+                case 'plan-semana':
+                    pricePerAdult = 70000;
+                    pricePerChild = 55000;
+                    break;
+                case 'plan-fin-semana':
+                    pricePerAdult = 90000;
+                    pricePerChild = 65000;
+                    break;
+                case 'membresia':
+                    pricePerAdult = 40000;
+                    pricePerChild = 40000;
+                    break;
+                case 'otro':
+                    const customPrice = parseFloat(document.getElementById('custom-price').value) || 0;
+                    pricePerAdult = customPrice;
+                    pricePerChild = customPrice;
+                    break;
+                default:
+                    pricePerAdult = 0;
+                    pricePerChild = 0;
+            }
+
+            const numAdults = parseInt(document.getElementById('num-adults').value) || 0;
+            const numChildren = parseInt(document.getElementById('num-children').value) || 0;
+            const amountPaidBank = parseFloat(document.getElementById('amount-paid-bank').value) || 0;
+            const amountPaidCash = parseFloat(document.getElementById('amount-paid-cash').value) || 0;
+
+            const total = (numAdults * pricePerAdult) + (numChildren * pricePerChild) - amountPaidBank - amountPaidCash;
+            document.getElementById('total-amount').textContent = 'Total a Pagar: $' + total.toFixed(2);
+
+            const submitButton = document.getElementById('submit-button');
+            if (total === 0) {
+                submitButton.disabled = false;
+            } else {
+                submitButton.disabled = true;
+            }
+        }
+
+        // Función para habilitar/deshabilitar el campo de precio personalizado
+        function toggleCustomPrice() {
+            const plan = document.getElementById('plan').value;
+            const customPriceField = document.getElementById('custom-price');
+            customPriceField.disabled = plan !== 'otro';
+            customPriceField.value = '';
+            calculateTotal();
+        }
+
+        // Función para habilitar/deshabilitar campos de pago dependiendo del método seleccionado
+        function togglePaymentFields() {
+            const paymentMethod = document.getElementById('payment-method').value;
+            const paymentProofField = document.getElementById('payment-proof');
+            const amountPaidBankField = document.getElementById('amount-paid-bank');
+            const amountPaidCashField = document.getElementById('amount-paid-cash');
+
+            paymentProofField.disabled = paymentMethod !== 'banco';
+            amountPaidBankField.disabled = false;
+            amountPaidCashField.disabled = false;
+
+            if (paymentMethod !== 'banco') {
+                paymentProofField.value = '';
+            }
+
+            calculateTotal();
+        }
+
+        // Función para mostrar el formulario de registro después de iniciar sesión
+        function showRegistrationForm() {
+            document.getElementById('login-form').style.display = 'none';
+            document.getElementById('registration-form').style.display = 'block';
+        }
+
+        // Función para iniciar sesión
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            // Validación básica del usuario y contraseña
+            if (username === 'cajero' && password === 'clave123') {
+                showRegistrationForm();
+                // Opcional: Guardar estado de sesión en localStorage o sessionStorage
+            } else {
+                alert('Usuario o contraseña incorrectos. Por favor, intenta de nuevo.');
+            }
+        }
+
+        // Función para limpiar el formulario después de enviarlo
+        function resetForm() {
+            document.getElementById('registration').reset(); // Cambio aquí para resetear el formulario correctamente
+            document.getElementById('submit-button').disabled = true;
+            document.getElementById('total-amount').textContent = 'Total a Pagar: $0.00';
+        }
+
+        // Inicializar intl-tel-input
+        document.addEventListener('DOMContentLoaded', () => {
+            const phoneInputField = document.querySelector("#phone");
+            const phoneInput = window.intlTelInput(phoneInputField, {
+                initialCountry: "auto",
+                geoIpLookup: function(success, failure) {
+                    fetch('https://ipinfo.io?token=YOUR_TOKEN_HERE')
+                        .then(response => response.json())
+                        .then(data => success(data.country))
+                        .catch(() => success('us'));
+                },
+                utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.13/js/utils.js"
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Registro de Pasadías</h1>
+        <img src="https://antioquiatropicalclub.com/wp-content/uploads/2022/01/logo-nuevo-atc-1.png" alt="Antioquia Tropical Club" />
+
+        <!-- Formulario de Login -->
+        <div id="login-form">
+            <label for="username">Usuario</label>
+            <input type="text" id="username" name="username" required>
+
+            <label for="password">Contraseña</label>
+            <input type="password" id="password" name="password" required>
+
+            <button type="button" onclick="login()">Iniciar Sesión</button>
+        </div>
+
+        <!-- Formulario de Registro de Pasadías -->
+        <div id="registration-form" style="display: none;" onsubmit="resetForm()">
+            <form action="https://script.google.com/macros/s/AKfycbys6qSxeR1bgX-AUkcX1Glri_zH2Xs4TV8UU6Yn886a2GZq9i5p2wIik1EVKlRqRPkLiw/exec" method="post" id="registration">
+                <label for="name">Nombre Completo</label>
+                <input type="text" id="name" name="name" required>
+
+                <label for="email">Correo Electrónico</label>
+                <input type="email" id="email" name="email" required>
+
+                <label for="phone">Número de Celular</label>
+                <input type="tel" id="phone" name="phone" required>
+
+                <label for="plan">Seleccionar Plan</label>
+                <select id="plan" name="plan" onchange="toggleCustomPrice()" required>
+                    <option value="">Seleccione una opción</option>
+                    <option value="plan-semana">Plan entre Semana (70,000 COP Adulto / 55,000 COP Niño)</option>
+                    <option value="plan-fin-semana">Plan Fin de Semana (90,000 COP Adulto / 65,000 COP Niño)</option>
+                    <option value="membresia">Membresía (40,000 COP)</option>
+                    <option value="otro">Otro</option>
+                </select>
+
+                <label for="custom-price">Precio Personalizado</label>
+                <input type="number" id="custom-price" name="custom-price" disabled oninput="calculateTotal()">
+
+                <label for="num-adults">Número de Adultos</label>
+                <input type="number" id="num-adults" name="num-adults" value="0" oninput="calculateTotal()" required>
+
+                <label for="num-children">Número de Niños</label>
+                <input type="number" id="num-children" name="num-children" value="0" oninput="calculateTotal()" required>
+
+                <label for="payment-method">Método de Pago</label>
+                <select id="payment-method" name="payment-method" onchange="togglePaymentFields()" required>
+                    <option value="efectivo">Efectivo</option>
+                    <option value="banco">Consignación Bancaria</option>
+                </select>
+
+                <label for="payment-proof">Comprobante de Pago</label>
+                <input type="file" id="payment-proof" name="payment-proof" accept="image/*" disabled>
+
+                <label for="amount-paid-bank">Cantidad Pagada (Banco)</label>
+                <input type="number" id="amount-paid-bank" name="amount-paid-bank" value="0" oninput="calculateTotal()" required>
+
+                <label for="amount-paid-cash">Cantidad Pagada (Efectivo)</label>
+                <input type="number" id="amount-paid-cash" name="amount-paid-cash" value="0" oninput="calculateTotal()" required>
+
+                <div class="total" id="total-amount">Total a Pagar: $0.00</div>
+                
+                <button type="submit" id="submit-button" disabled>Enviar</button>
+            </form>
+        </div>
+    </div>
+    <script src="https://api.clientify.net/web-marketing/superforms/script/196881.js" async></script>
+</body>
+</html>
+
